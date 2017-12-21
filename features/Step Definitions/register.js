@@ -1,5 +1,8 @@
 let { defineSupportCode } = require('cucumber');
 let assert = require('assert');
+let MongoClient = require('mongodb').MongoClient;
+const url = 'mongodb://118.31.19.120:27017/node_club_dev';
+let action = require('../../uiaction/action')
 defineSupportCode(function ({ Given, When, Then }) {
     Given('进入首页', async function () {
         return this.driver.get('http://118.31.19.120:3000/');
@@ -15,17 +18,14 @@ defineSupportCode(function ({ Given, When, Then }) {
         let b = a[Math.floor(Math.random() * 13)]
         username = b + string;
         email = b + string4;
-        await this.driver.findElement({ id: 'loginname' }).sendKeys(username);
-        await this.driver.findElement({ id: 'pass' }).sendKeys(string2);
-        await this.driver.findElement({ id: 're_pass' }).sendKeys(string3);
-        await this.driver.findElement({ id: 'email' }).sendKeys(email);
-        await this.driver.findElement({ css: '.span-primary' }).click();
-        if (string5 == 'sucess') {
-            let suc = await this.driver.findElement({ css: "strong" }).getText();
-            return assert.deepEqual(suc, string6);
-        } else {
-            let err = await this.driver.findElement({ css: "strong" }).getText();
-            return assert.deepEqual(err, string6);
-        }
+        return action.userRegister(this.driver, username, string2, string3, email, string5, string6);
+
+    });
+    Then('链接数据库，激活邮箱', async function () {
+        return action.activeUser(`${username}`);
+    });
+    Then('用刚才输出的密码{string}可以成功登录', async function (string) {
+        await this.driver.get("http://118.31.19.120:3000/signin");
+        return action.userLogin(this.driver, `${username}`, string, 'sucess', `${username}`);
     });
 })
